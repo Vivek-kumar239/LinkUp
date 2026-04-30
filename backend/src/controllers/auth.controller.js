@@ -1,9 +1,20 @@
+import nodemailer from "nodemailer";
+import bcrypt from "bcryptjs";
+
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
 import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudinary.js";
+import bcryptjs from "bcryptjs";
+
+let transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth:{
+    user:ENV.EMAIL,
+    pass:ENV.EMAIL_PASSWORD,
+  }
+})
 
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -37,12 +48,6 @@ export const signup = async (req, res) => {
     });
 
     if (newUser) {
-      // before CR:
-      // generateToken(newUser._id, res);
-      // await newUser.save();
-
-      // after CR:
-      // Persist user first, then issue auth cookie
       const savedUser = await newUser.save();
       generateToken(savedUser._id, res);
 
@@ -100,6 +105,88 @@ export const logout = (_, res) => {
   res.cookie("jwt", "", { maxAge: 0 });
   res.status(200).json({ message: "Logged out successfully" });
 };
+
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+export const sendOtp = async(req, res)=>{
+  try {
+    const {email} = req.body;
+    const user = await User.findOne({email:email});
+    
+    if(!user){
+      return res.status(404).json({success:"failure", message: "User doesn't exist"})
+    }
+
+    let otp = generateOTP();
+    user.resetOtp = otp;
+    user.otpExpiry = Date.now() + 5 * 60 * 1000 //5 min expiry
+
+    await user.save();
+
+    const mailOption = {
+      from: ENV.EMAIL,
+      to:email,
+      subject: "OPT for password rest",
+      text:`Your OPT for password reset is :${otp}`,
+    }
+
+    await transporter.sendMail(mailOption);
+
+    res.status(200).json ({messafe:"OTP has been sent to your email"})
+
+
+  } catch (error) {
+    res.status(500).json ({error: error.message});
+    
+  }
+};
+
+export const verifyOtp = async (req, res)=>{
+  try {
+    const {email , otp} = req.body;
+    const user =  await User.findOne({email});
+
+    if(!user || user.resetOtp !== otp){
+      return res.status(400).json({msg:"Invaild OTP"});
+    }
+    if(user.otpExpiry < Date.now()){
+      return res.status(400).json({msg:"OTP expired"});
+    }
+
+    res.status(200).json({msg:"OTP verified"});
+
+  } catch (error) {
+    res.status(200).json({error:error.message});
+  }
+}
+
+export const changePassword = async (req, res)=>{
+  try {
+    const {email , otp, newPassword} = req.body;
+    const user =  await User.findOne({email});
+
+    if(!user || user.resetOtp !== otp){
+      return res.status(400).json({msg:"Invaild OTP"});
+    }
+    if(user.otpExpiry < Date.now()){
+      return res.status(400).json({msg:"OTP expired"});
+    }
+
+    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    user.restOtp = null;
+    user.otpExpiry = null;
+
+    await user.save();
+
+    return res.status(200).json({msg:"Password reset successful"});
+
+  } catch (error) {
+    res.status(500).json({error: error.message});
+  }
+}
 
 export const updateProfile = async (req, res) => {
   try {
