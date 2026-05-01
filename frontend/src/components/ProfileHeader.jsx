@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { LogOutIcon, VolumeOffIcon, Volume2Icon } from "lucide-react";
+import { CameraIcon, LogOutIcon, VolumeOffIcon, Volume2Icon } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
@@ -26,74 +26,89 @@ function ProfileHeader() {
     };
   };
 
-  return (
-    <div className="p-6 border-b border-slate-700/50">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {/* AVATAR */}
-          <div className="avatar online">
-            <button
-              className="size-14 rounded-full overflow-hidden relative group"
-              onClick={() => fileInputRef.current.click()}
-            >
-              <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
-                alt="User image"
-                className="size-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <span className="text-white text-xs">Change</span>
-              </div>
-            </button>
-
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handleImageUpload}
-              className="hidden"
+ return (
+  <div className="p-5 border-b border-white/[0.05] bg-slate-900/40 backdrop-blur-md">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        {/* Avatar with Interactive Ring */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-cyan-500/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+          
+          <button
+            className="relative size-14 rounded-2xl overflow-hidden border-2 border-slate-700 group-hover:border-cyan-500/50 transition-all duration-300"
+            onClick={() => fileInputRef.current.click()}
+          >
+            <img
+              src={selectedImg || authUser.profilePic || "/avatar.png"}
+              alt="Profile"
+              className="size-full object-cover transform group-hover:scale-110 transition-transform duration-500"
             />
-          </div>
+            {/* Elegant Overlay */}
+            <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all duration-300">
+              <CameraIcon className="size-4 text-white mb-0.5" />
+              <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Edit</span>
+            </div>
+          </button>
 
-          {/* USERNAME & ONLINE TEXT */}
-          <div>
-            <h3 className="text-slate-200 font-medium text-base max-w-[180px] truncate">
-              {authUser.fullName}
-            </h3>
-
-            <p className="text-slate-400 text-xs">Online</p>
-          </div>
+          {/* Status Badge */}
+          <span className="absolute -bottom-1 -right-1 size-4 bg-emerald-500 border-4 border-slate-900 rounded-full" />
+          
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            className="hidden"
+          />
         </div>
 
-        {/* BUTTONS */}
-        <div className="flex gap-4 items-center">
-          {/* LOGOUT BTN */}
-          <button
-            className="text-slate-400 hover:text-slate-200 transition-colors"
-            onClick={logout}
-          >
-            <LogOutIcon className="size-5" />
-          </button>
-
-          {/* SOUND TOGGLE BTN */}
-          <button
-            className="text-slate-400 hover:text-slate-200 transition-colors"
-            onClick={() => {
-              // play click sound before toggling
-              mouseClickSound.currentTime = 0; // reset to start
-              mouseClickSound.play().catch((error) => console.log("Audio play failed:", error));
-              toggleSound();
-            }}
-          >
-            {isSoundEnabled ? (
-              <Volume2Icon className="size-5" />
-            ) : (
-              <VolumeOffIcon className="size-5" />
-            )}
-          </button>
+        {/* User Identity */}
+        <div className="flex flex-col">
+          <h3 className="text-slate-100 font-bold text-sm tracking-tight truncate max-w-[150px]">
+            {authUser.fullName}
+          </h3>
+          <div className="flex items-center gap-1.5">
+            <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              Active Now
+            </span>
+          </div>
         </div>
       </div>
+
+      {/* Action Controls */}
+      <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/[0.05]">
+        {/* Sound Toggle */}
+        <button
+          className={`p-2 rounded-lg transition-all ${
+            isSoundEnabled 
+              ? "text-cyan-400 bg-cyan-500/10" 
+              : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+          }`}
+          onClick={() => {
+            mouseClickSound.currentTime = 0;
+            mouseClickSound.play().catch(() => {});
+            toggleSound();
+          }}
+          title={isSoundEnabled ? "Mute sounds" : "Enable sounds"}
+        >
+          {isSoundEnabled ? <Volume2Icon className="size-4" /> : <VolumeOffIcon className="size-4" />}
+        </button>
+
+        {/* Vertical Divider */}
+        <div className="w-px h-4 bg-white/10 mx-1" />
+
+        {/* Logout */}
+        <button
+          className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+          onClick={logout}
+          title="Logout"
+        >
+          <LogOutIcon className="size-4" />
+        </button>
+      </div>
     </div>
-  );
+  </div>
+);
 }
 export default ProfileHeader;
