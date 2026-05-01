@@ -45,38 +45,30 @@ function MessageInput() {
   };
 
   return (
-    <div className="p-4 border-t border-slate-700/50">
-      {imagePreview && (
-        <div className="max-w-3xl mx-auto mb-3 flex items-center">
-          <div className="relative">
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg border border-slate-700"
-            />
-            <button
-              onClick={removeImage}
-              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
-              type="button"
-            >
-              <XIcon className="w-4 h-4" />
-            </button>
-          </div>
+  <div className="p-4 bg-slate-900/50 backdrop-blur-lg border-t border-white/5">
+    {/* Refined Image Preview Area */}
+    {imagePreview && (
+      <div className="max-w-3xl mx-auto mb-4 animate-in fade-in slide-in-from-bottom-2">
+        <div className="relative inline-block group">
+          <img
+            src={imagePreview}
+            alt="Preview"
+            className="w-24 h-24 object-cover rounded-xl border-2 border-cyan-500/30 shadow-lg shadow-cyan-500/10"
+          />
+          <button
+            onClick={removeImage}
+            className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-slate-200 hover:bg-red-500 hover:text-white transition-all shadow-xl"
+            type="button"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
         </div>
-      )}
+      </div>
+    )}
 
-      <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex space-x-4">
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            isSoundEnabled && playRandomKeyStrokeSound();
-          }}
-          className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-4"
-          placeholder="Type your message..."
-        />
-
+    <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex items-end gap-2">
+      <div className="relative flex-1 flex items-center bg-slate-800/40 border border-white/10 rounded-2xl focus-within:border-cyan-500/50 focus-within:bg-slate-800/60 transition-all px-2 py-1.5 shadow-inner">
+        {/* Hidden File Input */}
         <input
           type="file"
           accept="image/*"
@@ -85,24 +77,42 @@ function MessageInput() {
           className="hidden"
         />
 
+        {/* Attachment Button Nested Inside */}
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className={`bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg px-4 transition-colors ${
-            imagePreview ? "text-cyan-500" : ""
+          className={`p-2.5 rounded-xl transition-all ${
+            imagePreview 
+              ? "text-cyan-400 bg-cyan-500/10" 
+              : "text-slate-400 hover:text-cyan-400 hover:bg-white/5"
           }`}
         >
           <ImageIcon className="w-5 h-5" />
         </button>
-        <button
-          type="submit"
-          disabled={!text.trim() && !imagePreview}
-          className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg px-4 py-2 font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <SendIcon className="w-5 h-5" />
-        </button>
-      </form>
-    </div>
-  );
+
+        {/* Improved Text Input */}
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            isSoundEnabled && playRandomKeyStrokeSound();
+          }}
+          className="flex-1 bg-transparent border-none focus:ring-0 text-slate-200 placeholder-slate-500 py-2 px-2 text-sm"
+          placeholder="Message..."
+        />
+      </div>
+
+      {/* Primary Send Button */}
+      <button
+        type="submit"
+        disabled={!text.trim() && !imagePreview}
+        className="flex items-center justify-center w-11 h-11 bg-cyan-500 text-slate-900 rounded-xl hover:bg-cyan-400 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 shadow-lg shadow-cyan-500/20"
+      >
+        <SendIcon className="w-5 h-5" />
+      </button>
+    </form>
+  </div>
+);
 }
 export default MessageInput;
