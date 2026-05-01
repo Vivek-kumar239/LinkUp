@@ -7,6 +7,7 @@ import User from "../models/User.js";
 import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudinary.js";
 import bcryptjs from "bcryptjs";
+import {createOtpEmailTemplate} from "../emails/otpEmailTamplates.js";
 
 let transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -120,24 +121,25 @@ export const sendOtp = async(req, res)=>{
 
     let otp = generateOTP();
     user.resetOtp = otp;
-    user.otpExpiry = Date.now() + 5 * 60 * 1000 //5 min expiry
+    user.otpExpiry = Date.now() + 10 * 60 * 1000 //10 min expiry
+    let name = user.fullName;
 
     await user.save();
 
     const mailOption = {
       from: ENV.EMAIL,
-      to:email,
-      subject: "OPT for password rest",
-      text:`Your OPT for password reset is :${otp}`,
-    }
+      to: email,
+      subject: "Your LinkUp Verification Code",
+      html: createOtpEmailTemplate(otp , name),
+    };
 
     await transporter.sendMail(mailOption);
 
-    res.status(200).json ({messafe:"OTP has been sent to your email"})
+    res.status(200).json({ message: "OTP has been sent to your email" });
 
 
   } catch (error) {
-    res.status(500).json ({error: error.message});
+    res.status(500).json({ message: error.message });
     
   }
 };
@@ -147,17 +149,17 @@ export const verifyOtp = async (req, res)=>{
     const {email , otp} = req.body;
     const user =  await User.findOne({email});
 
-    if(!user || user.resetOtp !== otp){
-      return res.status(400).json({msg:"Invaild OTP"});
+    if (!user || user.resetOtp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
     }
-    if(user.otpExpiry < Date.now()){
-      return res.status(400).json({msg:"OTP expired"});
+    if (user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
     }
 
-    res.status(200).json({msg:"OTP verified"});
+    res.status(200).json({ message: "OTP verified" });
 
   } catch (error) {
-    res.status(200).json({error:error.message});
+    res.status(500).json({ message: error.message });
   }
 }
 
@@ -166,25 +168,25 @@ export const changePassword = async (req, res)=>{
     const {email , otp, newPassword} = req.body;
     const user =  await User.findOne({email});
 
-    if(!user || user.resetOtp !== otp){
-      return res.status(400).json({msg:"Invaild OTP"});
+    if (!user || user.resetOtp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
     }
-    if(user.otpExpiry < Date.now()){
-      return res.status(400).json({msg:"OTP expired"});
+    if (user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
     }
 
     const hashedPassword = await bcryptjs.hash(newPassword, 10);
 
     user.password = hashedPassword;
-    user.restOtp = null;
+    user.resetOtp = null;
     user.otpExpiry = null;
 
     await user.save();
 
-    return res.status(200).json({msg:"Password reset successful"});
+    return res.status(200).json({ message: "Password reset successful" });
 
   } catch (error) {
-    res.status(500).json({error: error.message});
+    res.status(500).json({ message: error.message });
   }
 }
 
