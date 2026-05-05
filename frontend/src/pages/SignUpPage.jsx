@@ -33,7 +33,7 @@ function SignUpPage() {
                   <span className="text-sm font-semibold tracking-wider text-cyan-500 uppercase">Join us</span>
                 </div>
                 <h2 className="text-3xl font-bold text-white tracking-tight">Create your account</h2>
-                <p className="text-slate-400 mt-2">Get started with your free developer profile today.</p>
+                <p className="text-slate-400 mt-2">Get started with LinkUP today.</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">

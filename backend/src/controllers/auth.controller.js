@@ -7,13 +7,13 @@ import User from "../models/User.js";
 import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudinary.js";
 import bcryptjs from "bcryptjs";
-import {createOtpEmailTemplate} from "../emails/otpEmailTamplates.js";
+import { createOtpEmailTemplate } from "../emails/otpEmailTamplates.js";
 
 let transporter = nodemailer.createTransport({
   service: 'gmail',
-  auth:{
-    user:ENV.EMAIL,
-    pass:ENV.EMAIL_PASSWORD,
+  auth: {
+    user: ENV.EMAIL,
+    pass: ENV.EMAIL_PASSWORD,
   }
 })
 
@@ -110,13 +110,13 @@ export const logout = (_, res) => {
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
-export const sendOtp = async(req, res)=>{
+export const sendOtp = async (req, res) => {
   try {
-    const {email} = req.body;
-    const user = await User.findOne({email:email});
-    
-    if(!user){
-      return res.status(404).json({success:"failure", message: "User doesn't exist"})
+    const { email } = req.body;
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ success: "failure", message: "User doesn't exist" })
     }
 
     let otp = generateOTP();
@@ -130,7 +130,7 @@ export const sendOtp = async(req, res)=>{
       from: ENV.EMAIL,
       to: email,
       subject: "Your LinkUp Verification Code",
-      html: createOtpEmailTemplate(otp , name),
+      html: createOtpEmailTemplate(otp, name),
     };
 
     await transporter.sendMail(mailOption);
@@ -140,14 +140,14 @@ export const sendOtp = async(req, res)=>{
 
   } catch (error) {
     res.status(500).json({ message: error.message });
-    
+
   }
 };
 
-export const verifyOtp = async (req, res)=>{
+export const verifyOtp = async (req, res) => {
   try {
-    const {email , otp} = req.body;
-    const user =  await User.findOne({email});
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email });
 
     if (!user || user.resetOtp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
@@ -163,10 +163,10 @@ export const verifyOtp = async (req, res)=>{
   }
 }
 
-export const changePassword = async (req, res)=>{
+export const changePassword = async (req, res) => {
   try {
-    const {email , otp, newPassword} = req.body;
-    const user =  await User.findOne({email});
+    const { email, otp, newPassword } = req.body;
+    const user = await User.findOne({ email });
 
     if (!user || user.resetOtp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
@@ -199,6 +199,7 @@ export const updateProfile = async (req, res) => {
 
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
 
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic: uploadResponse.secure_url },
@@ -207,7 +208,7 @@ export const updateProfile = async (req, res) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("Error in update profile:", error);
+    console.log("Error in update profile:", error, error.http_code, error.response);
     res.status(500).json({ message: "Internal server error" });
   }
 };
